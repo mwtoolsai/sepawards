@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Product Quiz</title>
+  <meta name="description" content="Quick product quiz" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* =========================================================
+       THEME TOKENS — edit these to rebrand the whole funnel
+       ========================================================= */
+    :root {
+      --bg:           #F4F4F4;
+      --surface:      #FFFFFF;
+      --ink:          #000000;
+      --ink-soft:     #444444;
+      --muted:        #888888;
+      --line:         #E0E0E0;
+      --accent:       #D4587A;   /* primary brand color */
+      --accent-tint:  #FDF0F3;   /* selected-button background */
+      --banner-bg:    #000000;
+      --banner-fg:    #FFFFFF;
+      --footer-bg:    #000000;
+      --footer-fg:    #666666;
+
+      --font-body: 'Nunito Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; width: 100%; overflow: hidden; }
+    body {
+      background: var(--bg);
+      font-family: var(--font-body);
+      color: var(--ink);
+    }
+
+    /* ── full-screen overlay container ── */
+    #quiz-overlay {
+      position: fixed; inset: 0;
+      width: 100vw; height: 100vh;
+      background: var(--bg);
+      display: flex; flex-direction: column; align-items: center;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    /* ── top banner ── */
+    .q-banner {
+      width: 100%;
+      background: var(--banner-bg);
+      color: var(--banner-fg);
+      padding: 11px 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .q-banner-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: 0.2 } }
+
+    /* ── decorative stripe ── */
+    .q-stripe {
+      width: 100%;
+      height: 9px;
+      background: repeating-linear-gradient(90deg, var(--ink) 0px, var(--ink) 9px, #fff 9px, #fff 18px);
+      flex-shrink: 0;
+    }
+
+    /* ── main centered content ── */
+    .q-main {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 5vh 0 80px;
+      overflow-y: auto;
+    }
+
+    /* ── logo block ── */
+    .q-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .q-logo-mark {
+      width: 56px; height: 56px;
+      background: var(--ink);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.02em;
+    }
+    .q-logo-name {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      color: var(--ink);
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    .q-logo-sub {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      color: var(--muted);
+      line-height: 1;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ── individual screen ── */
+    .q-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      animation: slideIn 0.3s ease both;
+    }
+    .q-screen.active { display: flex; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── progress bar ── */
+    .q-progress { text-align: center; margin-bottom: 40px; }
+    .q-bars {
+      display: flex;
+      gap: 7px;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+    .q-bar {
+      width: 56px; height: 4px;
+      border-radius: 2px;
+      background: #CCC;
+      transition: background 0.35s;
+    }
+    .q-bar.done, .q-bar.active { background: var(--accent); }
+    .q-step-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── question text ── */
+    .q-question {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+      text-align: center;
+      padding: 0 24px;
+      max-width: 480px;
+      line-height: 1.3;
+      margin-bottom: 36px;
+    }
+
+    /* ── answer button grid ── */
+    .q-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 460px;
+      padding: 0 24px;
+    }
+    .q-grid.two { max-width: 320px; }
+    .q-btn {
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      padding: 22px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .q-btn:hover {
+      border-color: var(--ink);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
+    }
+    .q-btn.sel {
+      border-color: var(--accent);
+      background: var(--accent-tint);
+    }
+
+    /* ── final-screen card ── */
+    .q-card {
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 14px;
+      padding: 26px 24px 22px;
+      max-width: 400px;
+      width: calc(100% - 48px);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .q-card-icon {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .q-card-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .q-card-divider {
+      width: 36px;
+      height: 2px;
+      background: var(--accent);
+      margin: 12px auto;
+    }
+    .q-card-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+
+    /* ── footer (fixed at viewport bottom) ── */
+    .q-footer-stripe {
+      position: absolute;
+      bottom: 36px; left: 0;
+      width: 100%;
+      height: 9px;
+      background: repeating-linear-gradient(90deg, var(--ink) 0px, var(--ink) 9px, #fff 9px, #fff 18px);
+    }
+    .q-footer-note {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      background: var(--footer-bg);
+      color: var(--footer-fg);
+      text-align: center;
+      padding: 10px;
+      font-size: 9.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-weight: 700;
+      font-style: italic;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── responsive ── */
+    @media (max-width: 480px) {
+      .q-logo-name { font-size: 22px; }
+      .q-question { font-size: 18px; }
+      .q-btn { padding: 18px 10px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="quiz-overlay">
+    <!-- Top banner with live-counter slot -->
+    <div class="q-banner">
+      <div class="q-banner-dot"></div>
+      <span id="q-count"></span>
+    </div>
+
+    <div class="q-stripe"></div>
+
+    <div class="q-main">
+      <!-- Logo / brand -->
+      <div class="q-logo">
+        <div class="q-logo-mark" id="q-logo-mark">B</div>
+        <div>
+          <div class="q-logo-name" id="q-logo-name">YOUR BRAND</div>
+          <div class="q-logo-sub" id="q-logo-sub">PRODUCT QUIZ</div>
+        </div>
+      </div>
+
+      <!-- Screens are injected here by JS -->
+      <div id="q-screens"></div>
+    </div>
+
+    <div class="q-footer-stripe"></div>
+    <div class="q-footer-note" id="q-footer-note">Built for our community</div>
+  </div>
+
+  <script>
+    /* =========================================================
+       CONFIG — edit this object to customize the entire funnel.
+       No HTML changes needed.
+       ========================================================= */
+    const CONFIG = {
+      // Brand identity
+      brand: {
+        name: 'YOUR BRAND',          // shown in the logo
+        subtitle: 'PRODUCT QUIZ',    // small text under the name
+        markLetter: 'B',             // single letter inside the circle
+        footerNote: 'Built for our community',
+      },
+
+      // Top banner social proof — kept honest and static.
+      // Set to null to hide the counter entirely.
+      socialProof: 'Join our community of curious shoppers',
+
+      // Quiz questions. Add/remove freely — progress bars & step labels
+      // recalculate automatically based on the array length.
+      questions: [
+        {
+          question: 'How often do you shop in this category?',
+          options: ['Weekly', 'Monthly', 'Occasionally', 'Rarely'],
+        },
+        {
+          question: 'Which area interests you most?',
+          options: ['Skincare', 'Makeup', 'Fragrance', 'Hair Care'],
+        },
+        {
+          question: 'What is your typical budget per purchase?',
+          options: ['Under $50', '$50 – $100', '$100 – $200', '$200+'],
+        },
+        {
+          question: 'Are you looking for personalized recommendations?',
+          options: ['Yes', 'No'],
+        },
+      ],
+
+      // Final screen — shown after the last question.
+      // No fake-prize messaging here. Use this for an honest CTA:
+      // newsletter signup, real product link, recommendation page, etc.
+      finalScreen: {
+        icon: '✨',
+        title: 'Get your personalized recommendation',
+        text: 'Based on your answers, we will send you a curated short list. No spam, unsubscribe anytime.',
+        primaryButton: 'Show me my recommendation',
+        secondaryButton: 'No thanks',
+        // Where the primary button sends users.
+        // Replace with your real form / thank-you / product page.
+        primaryRedirect: '#thank-you',
+        secondaryRedirect: '#',
+      },
+    };
+
+    /* =========================================================
+       RENDERER — you should not need to touch anything below
+       unless you want to change behavior.
+       ========================================================= */
+    (function renderQuiz() {
+      // Apply brand text
+      document.getElementById('q-logo-name').textContent = CONFIG.brand.name;
+      document.getElementById('q-logo-sub').textContent = CONFIG.brand.subtitle;
+      document.getElementById('q-logo-mark').textContent = CONFIG.brand.markLetter;
+      document.getElementById('q-footer-note').textContent = CONFIG.brand.footerNote;
+
+      // Apply social-proof text or hide
+      const countEl = document.getElementById('q-count');
+      if (CONFIG.socialProof) {
+        countEl.textContent = CONFIG.socialProof;
+      } else {
+        countEl.parentElement.style.display = 'none';
+      }
+
+      // Build screens from config
+      const total = CONFIG.questions.length + 1; // +1 for final screen
+      const screensRoot = document.getElementById('q-screens');
+
+      CONFIG.questions.forEach((q, idx) => {
+        const stepNum = idx + 1;
+        const screen = document.createElement('div');
+        screen.className = 'q-screen' + (idx === 0 ? ' active' : '');
+        screen.id = 's' + stepNum;
+        screen.innerHTML = `
+          <div class="q-progress">
+            <div class="q-bars">${buildBars(total, stepNum)}</div>
+            <span class="q-step-label">Step ${stepNum} of ${total}</span>
+          </div>
+          <div class="q-question">${escapeHTML(q.question)}</div>
+          <div class="q-grid${q.options.length === 2 ? ' two' : ''}">
+            ${q.options.map(opt => `
+              <button class="q-btn" data-next="s${stepNum + 1}">${escapeHTML(opt)}</button>
+            `).join('')}
+          </div>
+        `;
+        screensRoot.appendChild(screen);
+      });
+
+      // Build final screen
+      const finalStep = total;
+      const finalScreen = document.createElement('div');
+      finalScreen.className = 'q-screen';
+      finalScreen.id = 's' + finalStep;
+      const f = CONFIG.finalScreen;
+      finalScreen.innerHTML = `
+        <div class="q-progress">
+          <div class="q-bars">${buildBars(total, finalStep)}</div>
+          <span class="q-step-label">Step ${finalStep} of ${total}</span>
+        </div>
+        <div class="q-card">
+          <span class="q-card-icon">${escapeHTML(f.icon)}</span>
+          <div class="q-card-title">${escapeHTML(f.title)}</div>
+          <div class="q-card-divider"></div>
+          <div class="q-card-text">${escapeHTML(f.text)}</div>
+        </div>
+        <div class="q-grid two">
+          <button class="q-btn" data-redirect="primary">${escapeHTML(f.primaryButton)}</button>
+          <button class="q-btn" data-redirect="secondary">${escapeHTML(f.secondaryButton)}</button>
+        </div>
+      `;
+      screensRoot.appendChild(finalScreen);
+
+      // Wire up button clicks
+      screensRoot.addEventListener('click', (e) => {
+        const btn = e.target.closest('.q-btn');
+        if (!btn) return;
+        if (btn.dataset.next) {
+          go(btn, btn.dataset.next);
+        } else if (btn.dataset.redirect) {
+          const url = btn.dataset.redirect === 'primary'
+            ? CONFIG.finalScreen.primaryRedirect
+            : CONFIG.finalScreen.secondaryRedirect;
+          redir(btn, url);
+        }
+      });
+    })();
+
+    function buildBars(total, currentStep) {
+      let html = '';
+      for (let i = 1; i <= total; i++) {
+        let cls = 'q-bar';
+        if (i < currentStep) cls += ' done';
+        else if (i === currentStep) cls += ' active';
+        html += `<div class="${cls}"></div>`;
+      }
+      return html;
+    }
+
+    function go(btn, id) {
+      btn.classList.add('sel');
+      setTimeout(() => {
+        document.querySelectorAll('.q-screen').forEach(s => s.classList.remove('active'));
+        const next = document.getElementById(id);
+        if (next) {
+          next.classList.add('active');
+          document.getElementById('quiz-overlay').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 280);
+    }
+
+    function redir(btn, url) {
+      btn.classList.add('sel');
+      setTimeout(() => {
+        if (url && url !== '#') {
+          window.location.href = url;
+        }
+      }, 280);
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
