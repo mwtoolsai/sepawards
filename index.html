@@ -296,7 +296,13 @@
     <div class="q-main">
       <!-- Logo / brand -->
       <div class="q-logo">
-        <div class="q-logo-mark" id="q-logo-mark">B</div>
+        <div class="q-logo-mark" id="q-logo-mark">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+            <path d="M13.5 4.5 C 9 9, 15.5 12, 11.5 16 C 9 18.5, 13 20, 11 22"
+                  stroke="#ffffff" stroke-width="1.4" fill="none"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
         <div>
           <div class="q-logo-name" id="q-logo-name">SEPHORA</div>
           <div class="q-logo-sub" id="q-logo-sub">BEAUTY SURVEY</div>
@@ -374,7 +380,7 @@
       // Apply brand text
       document.getElementById('q-logo-name').textContent = CONFIG.brand.name;
       document.getElementById('q-logo-sub').textContent = CONFIG.brand.subtitle;
-      document.getElementById('q-logo-mark').textContent = CONFIG.brand.markLetter;
+      // logo mark is now an inline SVG flame — no JS overwrite
       document.getElementById('q-footer-note').textContent = CONFIG.brand.footerNote;
 
       // Apply social-proof text or hide
