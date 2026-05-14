@@ -188,6 +188,7 @@
       padding: 0 24px;
     }
     .q-grid.two { max-width: 320px; }
+    .q-grid.one { grid-template-columns: 1fr; max-width: 320px; }
     .q-btn {
       background: var(--surface);
       border: 1.5px solid var(--line);
@@ -356,8 +357,8 @@
         icon: '✨',
         title: 'Complete all steps to get your $750 Sephora gift card',
         text: 'Based on your answers, we will send you a curated short list. No spam, unsubscribe anytime.',
-        primaryButton: 'Show me my recommendation',
-        secondaryButton: 'No thanks',
+        primaryButton: 'Take me there',
+        secondaryButton: '',
         // Where the primary button sends users.
         // Replace with your real form / thank-you / product page.
         primaryRedirect: '#thank-you',
@@ -425,9 +426,9 @@
           <div class="q-card-divider"></div>
           <div class="q-card-text">${escapeHTML(f.text)}</div>
         </div>
-        <div class="q-grid two">
+        <div class="q-grid${f.secondaryButton ? ' two' : ' one'}">
           <button class="q-btn" data-redirect="primary">${escapeHTML(f.primaryButton)}</button>
-          <button class="q-btn" data-redirect="secondary">${escapeHTML(f.secondaryButton)}</button>
+          ${f.secondaryButton ? `<button class="q-btn" data-redirect="secondary">${escapeHTML(f.secondaryButton)}</button>` : ''}
         </div>
       `;
       screensRoot.appendChild(finalScreen);
