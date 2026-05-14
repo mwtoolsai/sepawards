@@ -356,7 +356,7 @@
       finalScreen: {
         icon: '✨',
         title: 'Complete all steps to get your $750 Sephora gift card',
-        text: 'Based on your answers, we will send you a curated short list. No spam, unsubscribe anytime.',
+        text: '',
         primaryButton: 'Take me there',
         secondaryButton: '',
         // Where the primary button sends users.
@@ -423,8 +423,7 @@
         <div class="q-card">
           <span class="q-card-icon">${escapeHTML(f.icon)}</span>
           <div class="q-card-title">${escapeHTML(f.title)}</div>
-          <div class="q-card-divider"></div>
-          <div class="q-card-text">${escapeHTML(f.text)}</div>
+          ${f.text ? `<div class="q-card-divider"></div><div class="q-card-text">${escapeHTML(f.text)}</div>` : ''}
         </div>
         <div class="q-grid${f.secondaryButton ? ' two' : ' one'}">
           <button class="q-btn" data-redirect="primary">${escapeHTML(f.primaryButton)}</button>
