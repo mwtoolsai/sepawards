@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local env
+.env
+.env.local
+
+# Build artefacts (none today, but future-proof)
+node_modules/
+dist/
+build/
